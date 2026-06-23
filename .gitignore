@@ -1,0 +1,5 @@
+mac/
+.claude/
+.DS_Store
+*.zip
+*.dmg
