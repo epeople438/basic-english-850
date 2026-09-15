@@ -134,7 +134,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .words{display:flex;flex-direction:column;gap:8px}
 .wrow{background:var(--card);border:1px solid var(--line);border-radius:12px;
   padding:12px 14px;display:flex;align-items:center;gap:10px}
-.wrow .en{font-size:17px;font-weight:600}
+.wrow .en{font-size:17px;font-weight:600;white-space:nowrap;flex:none}
 .wrow .ck{color:var(--good);font-size:12px;font-weight:700}
 .wrow .ck.bad{color:var(--again)}
 .wrow .ck.miss{color:var(--hard);font-weight:800}
@@ -162,7 +162,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .flash .badge{position:absolute;top:18px;right:64px;font-size:11px;font-weight:700;
   color:var(--accent2);background:color-mix(in srgb,var(--accent) 16%,transparent);
   padding:3px 9px;border-radius:20px}
-.speed-word{font-size:clamp(40px,14vw,60px);font-weight:800;letter-spacing:-.5px;word-break:break-word}
+.speed-word{font-size:clamp(40px,14vw,60px);font-weight:800;letter-spacing:-.5px;
+  white-space:nowrap;overflow:hidden;max-width:100%}
 .speed-zh{font-size:clamp(21px,6.5vw,28px);font-weight:700;color:var(--muted);margin-top:8px}
 .speed-zh.peek{font-size:14px;font-weight:600;border:1px dashed var(--line);border-radius:12px;
   padding:9px 16px;margin-top:14px;color:var(--muted)}
@@ -182,7 +183,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   border-radius:24px;padding:24px 18px;text-align:center;margin-bottom:14px}
 .q-cat{display:flex;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:12px}
 .q-cat i{width:8px;height:8px;border-radius:3px}
-.q-word{font-size:clamp(32px,10vw,46px);font-weight:800;margin:12px 0 0;word-break:break-word}
+.q-word{font-size:clamp(32px,10vw,46px);font-weight:800;margin:12px 0 0;
+  white-space:nowrap;overflow:hidden;max-width:100%}
 .q-zh{font-size:clamp(28px,9vw,40px);font-weight:800;margin:12px 0 0}
 .q-sub{font-size:17px;font-weight:600;color:var(--muted);margin-top:6px}
 .q-tip{color:var(--muted);font-size:12px;margin-top:14px}
@@ -200,6 +202,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   background:var(--card);border:1px solid var(--line);font-size:18px;font-weight:500;text-align:left;
   transition:transform .08s}
 .opt:active{transform:scale(.99)}
+.opt{white-space:nowrap;overflow:hidden}
 .opt .k{font-size:13px;font-weight:700;color:var(--muted);width:18px;flex:none}
 .opt .mk{margin-left:auto;font-size:18px}
 .opt.correct{background:color-mix(in srgb,var(--good) 18%,transparent);border-color:var(--good)}

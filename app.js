@@ -291,8 +291,21 @@
   }
 
   function render(){
-    if (sess.drill) return renderDrill();
-    sess.phase === "card" ? renderCard() : renderQuiz();
+    if (sess.drill) renderDrill();
+    else if (sess.phase === "card") renderCard();
+    else renderQuiz();
+    fitWords();
+  }
+  // 单词一律单行：渲染后量一下，放不下就按比例把字号缩到刚好
+  function fitWords(){
+    app.querySelectorAll(".speed-word,.q-word").forEach(el => {
+      el.style.fontSize = "";
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      for (let k = 0; k < 6 && el.scrollWidth > el.clientWidth; k++){
+        size = Math.max(16, size * (el.clientWidth / el.scrollWidth) - 0.5);
+        el.style.fontSize = size + "px";
+      }
+    });
   }
   function topBar(){
     return `<div class="bar">
@@ -306,7 +319,7 @@
   // ---- 新词卡：看一眼，点一下立刻考 ----
   function renderCard(){
     const o = cur(), c = CAT[o.c];
-    return app.innerHTML = `<div class="screen stage">
+    app.innerHTML = `<div class="screen stage">
       ${topBar()}
       <div class="flash" data-act="card-go">
         <div class="cat">${dot(o.c)}${c.name}</div>
