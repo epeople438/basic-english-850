@@ -3,6 +3,20 @@
   const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
   const IDX = Object.fromEntries(W.map((o,i) => [o.w, i]));
   const app = document.getElementById("app");
+  // ---- 线性图标（只替换原来的 emoji 图标，庆祝页 emoji 保留）----
+  const sv = d => '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>';
+  const ICON = {
+    sun:  sv('<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/>'),
+    moon: sv('<path d="M20 14.2A8.4 8.4 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z"/>'),
+    book: sv('<path d="M4 5.2A1.7 1.7 0 0 1 5.7 3.5H10a2.4 2.4 0 0 1 2 1.1 2.4 2.4 0 0 1 2-1.1h4.3A1.7 1.7 0 0 1 20 5.2v11.3a1.7 1.7 0 0 1-1.7 1.7H14a2.4 2.4 0 0 0-2 1.1 2.4 2.4 0 0 0-2-1.1H5.7A1.7 1.7 0 0 1 4 16.5Z"/><path d="M12 6.6v12.7"/>'),
+    bolt: sv('<path d="M13.4 2.8 4.9 13.3h5.3l-1.6 7.9 8.5-10.5h-5.3Z"/>'),
+    spk:  sv('<path d="M11 4.8 6.6 8.4H3.8v7.2h2.8L11 19.2Z"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6M18 6.4a8 8 0 0 1 0 11.2"/>'),
+    chev: sv('<path d="M9.5 5.5 16 12l-6.5 6.5"/>'),
+    back: sv('<path d="M14.5 5.5 8 12l6.5 6.5"/>'),
+    check:sv('<path d="M4.8 12.6 9.6 17.4 19.2 6.6"/>'),
+    x:    sv('<path d="M6.2 6.2 17.8 17.8M17.8 6.2 6.2 17.8"/>')
+  };
+
   const KEY = "be850-state-v4", OLD3 = "be850-state-v3", OLD2 = "be850-state-v2", OLD1 = "be850-progress-v1";
   const TKEY = "be850-theme";
   const GROUP = 20;   // 每次刷多少个词
@@ -138,7 +152,7 @@
           <div class="brand">Basic English<span>850</span></div>
           <div class="tagline">第 ${st.round} 轮 · 连对 ${CLEAR} 次消掉一个词</div>
         </div>
-        <button class="theme-btn" data-act="theme">${(localStorage.getItem(TKEY)||"dark")==="dark"?"☀️":"🌙"}</button>
+        <button class="theme-btn" data-act="theme" aria-label="切换主题">${(localStorage.getItem(TKEY)||"dark")==="dark"?ICON.sun:ICON.moon}</button>
       </div>
 
       <div class="home-main">
@@ -168,9 +182,9 @@
 
       <div class="home-foot">
         <button class="row-link" data-act="cats">
-          <span class="ic">📚</span>
+          <span class="ic">${ICON.book}</span>
           <span class="tx"><b>按分类查词</b><em>查词听音 · 可整类过一遍，不计进度</em></span>
-          <span class="n">›</span>
+          <span class="n">${ICON.chev}</span>
         </button>
         <div class="foot"><button class="link" data-act="reset">重置全部进度</button></div>
       </div>
@@ -193,7 +207,7 @@
     }).join("");
     app.innerHTML = `<div class="screen">
       <div class="bar">
-        <button class="back" data-act="home">‹ 返回</button>
+        <button class="back" data-act="home">${ICON.back}返回</button>
         <div class="ttl">按分类查词</div>
         <span class="count"></span>
       </div>
@@ -215,20 +229,20 @@
       return `<div class="wrow ${h>=CLEAR?"seen":""}">
         <span class="en">${o.w}</span>${tag}
         <span class="zh">${o.zh}</span>
-        <button class="spk" data-act="say" data-w="${o.w}">🔊</button>
+        <button class="spk" data-act="say" data-w="${o.w}" aria-label="发音">${ICON.spk}</button>
       </div>`;
     }).join("");
     app.innerHTML = `<div class="screen">
       <div class="sticky-head">
         <div class="bar">
-          <button class="back" data-act="cats">‹ 返回</button>
+          <button class="back" data-act="cats">${ICON.back}返回</button>
           <div class="ttl">${c.name}<small>${c.zh} · ${list.length} 个词</small></div>
           <span class="count"></span>
         </div>
         <button class="row-link" data-act="drill" data-id="${catId}">
-          <span class="ic">⚡️</span>
+          <span class="ic">${ICON.bolt}</span>
           <span class="tx"><b>${dpos ? "接着过这一类" : "过一遍这一类"}</b><em>${dsub}</em></span>
-          <span class="n">${dlaps ? dlaps + " 遍" : "›"}</span>
+          <span class="n">${dlaps ? dlaps + " 遍" : ICON.chev}</span>
         </button>
       </div>
       <div class="words">${rows}</div>
@@ -311,7 +325,7 @@
   }
   function topBar(){
     return `<div class="bar">
-      <button class="back" data-act="${sess.drill ? "cat" : "home"}" ${sess.drill?`data-id="${sess.cat}"`:""}>‹ 退出</button>
+      <button class="back" data-act="${sess.drill ? "cat" : "home"}" ${sess.drill?`data-id="${sess.cat}"`:""}>${ICON.back}退出</button>
       <div class="ttl">${sess.drill ? CAT[sess.cat].zh : "刷词"}<small>${sess.drill ? ("只看不考" + ((st.drill[sess.cat]||{}).laps ? " · 已过 " + st.drill[sess.cat].laps + " 遍" : "")) : "本轮还剩 " + leftCount() + " 词"}</small></div>
       <span class="count">${sess.idx+1}/${sess.list.length}</span>
     </div>
@@ -325,7 +339,7 @@
       ${topBar()}
       <div class="flash" data-act="card-go">
         <div class="cat">${dot(o.c)}${c.name}</div>
-        <button class="spk-btn" data-act="say" data-w="${o.w}">🔊</button>
+        <button class="spk-btn" data-act="say" data-w="${o.w}" aria-label="发音">${ICON.spk}</button>
         <div class="badge">新词</div>
         <div class="speed-word">${o.w}</div>
         <div class="speed-zh">${o.zh}</div>
@@ -342,21 +356,21 @@
     let stem, tip;
     if (!listen){
       stem = `<div class="q-word">${o.w}</div>
-              <button class="spk-btn flat" data-act="say" data-w="${o.w}">🔊</button>`;
+              <button class="spk-btn flat" data-act="say" data-w="${o.w}">${ICON.spk}<span>听发音</span></button>`;
       tip = "选出正确的中文意思";
     } else if (picked){                          // 听音题答完，把词形和释义都揭出来
       stem = `<div class="q-word">${o.w}</div><div class="q-sub">${o.zh}</div>
-              <button class="spk-btn flat" data-act="say" data-w="${o.w}">🔊</button>`;
+              <button class="spk-btn flat" data-act="say" data-w="${o.w}">${ICON.spk}<span>听发音</span></button>`;
       tip = "";
     } else {
-      stem = `<button class="listen-spk" data-act="say" data-w="${o.w}">🔊</button>`;
+      stem = `<button class="listen-spk" data-act="say" data-w="${o.w}" aria-label="播放发音">${ICON.spk}</button>`;
       tip = "只听发音 · 选出对应的中文意思";
     }
     const opts = sess.opts.map((t,i) => {
       let cls = "", mk = "";
       if (picked){
-        if (i === sess.ans){ cls = "correct"; mk = '<span class="mk">✅</span>'; }
-        else if (i === sess.picked){ cls = "wrong"; mk = '<span class="mk">❌</span>'; }
+        if (i === sess.ans){ cls = "correct"; mk = '<span class="mk">' + ICON.check + '</span>'; }
+        else if (i === sess.picked){ cls = "wrong"; mk = '<span class="mk">' + ICON.x + '</span>'; }
       }
       return `<button class="opt ${cls}" data-act="opt" data-i="${i}"><span class="k">${i+1}</span>${t}${mk}</button>`;
     }).join("");
@@ -385,7 +399,7 @@
       ${topBar()}
       <div class="flash" data-act="next">
         <div class="cat">${dot(o.c)}${c.name}</div>
-        <button class="spk-btn" data-act="say" data-w="${o.w}">🔊</button>
+        <button class="spk-btn" data-act="say" data-w="${o.w}" aria-label="发音">${ICON.spk}</button>
         <div class="speed-word">${o.w}</div>
         ${show ? `<div class="speed-zh">${o.zh}</div>`
                : `<button class="speed-zh peek" data-act="peek">· · · 点这看中文</button>`}
@@ -393,7 +407,7 @@
       </div>
       <div class="toolbar">
         <button class="tool" data-act="prev" ${sess.idx===0?"disabled":""}>‹ 上一个</button>
-        <button class="tool" data-act="say" data-w="${o.w}">🔊 重听</button>
+        <button class="tool" data-act="say" data-w="${o.w}">${ICON.spk}重听</button>
         <button class="tool ${on?"on":""}" data-act="tzh">中文 ${on?"开":"关"}</button>
       </div>
       <div class="keytips">空格/→ 下一个 · ← 上一个 · R 重听</div>
