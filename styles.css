@@ -318,6 +318,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   transition:transform .18s var(--spring);
 }
 @keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+/* 刷词页每几秒就换一次，位移动画看久了累眼——这里只做淡入 */
+@keyframes softIn{from{opacity:0}to{opacity:1}}
+.screen.quiz,.screen.stage{animation:softIn .2s var(--ease) both}
+.quiz .q-card,.stage .flash{animation:softIn .24s var(--ease) both}
 .flash:active{transform:scale(.99)}
 .flash .cat{position:absolute;top:18px;left:20px;font-size:11px;font-weight:700;letter-spacing:.4px;
   text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px}

@@ -445,9 +445,41 @@
     const o = cur(), right = i === sess.ans;
     if (right){ sess.right++; hit(o.w); if (clear(o.w)) sess.gone++; }
     else { sess.wrong++; miss(o.w); }
-    render();
+    paintAnswer();
     const id = sess.id;
     setTimeout(() => { if (sess && sess.id === id) step(); }, right ? 750 : 1700);
+  }
+
+  // 答题反馈只做局部更新：重建 DOM 会让 .q-card / .screen 的入场动画重播，
+  // 单词就会跟着跳一下——快速刷词时非常累眼。
+  function paintAnswer(){
+    const o = cur(), right = sess.picked === sess.ans;
+    app.querySelectorAll(".opt").forEach((el, i) => {
+      if (i === sess.ans){
+        el.classList.add("correct");
+        el.insertAdjacentHTML("beforeend", '<span class="mk">' + ICON.check + '</span>');
+      } else if (i === sess.picked){
+        el.classList.add("wrong");
+        el.insertAdjacentHTML("beforeend", '<span class="mk">' + ICON.x + '</span>');
+      }
+    });
+    const v = app.querySelector(".verdict");
+    if (v){
+      v.className = "verdict " + (right ? (hits(o.w) >= CLEAR ? "good" : "") : "bad");
+      v.textContent = right
+        ? (hits(o.w) >= CLEAR ? `连对 ${CLEAR} 次 · 本轮消掉 ✓` : `答对 1 次 · 再对 1 次就消掉`)
+        : "留在本轮，等下再遇到";
+    }
+    const tip = app.querySelector(".q-tip");
+    if (tip) tip.style.visibility = "hidden";   // 留着占位，免得卡片变矮又跳一下
+    if (sess.listen){                           // 只有听音题要把题干换成揭晓
+      const spk = app.querySelector(".listen-spk");
+      if (spk){
+        spk.outerHTML = `<div class="q-word">${o.w}</div><div class="q-sub">${o.zh}</div>
+          <button class="spk-btn flat" data-act="say" data-w="${o.w}">${ICON.spk}<span>听发音</span></button>`;
+        fitWords();
+      }
+    }
   }
 
   function renderDone(){
