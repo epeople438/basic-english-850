@@ -51,6 +51,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .prog-num{font-size:26px;font-weight:800;line-height:1}
 .prog-num small{font-size:13px;color:var(--muted);font-weight:600;margin-left:4px}
 .prog-side{font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
+.prog-duo{display:flex;align-items:flex-end;gap:22px}
+.prog-duo .duo{display:flex;flex-direction:column;gap:3px}
+.prog-duo .duo b{font-size:30px;font-weight:800;line-height:1}
+.prog-duo .duo b.hit{color:var(--good)}
+.prog-duo .duo span{font-size:11px;color:var(--muted);font-weight:600}
+.prog-duo .duo.sm{margin-left:auto;text-align:right}
+.prog-duo .duo.sm b{font-size:19px;color:var(--accent2)}
+.prog-card .bar-track{margin-top:14px}
+.prog-legend{display:flex;flex-wrap:wrap;gap:8px 13px;margin-top:11px;font-size:11px;color:var(--muted)}
+.prog-legend i{width:8px;height:8px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:middle}
 .bar-track{height:12px;background:var(--track);border-radius:10px;overflow:hidden;display:flex}
 .bar-seg{height:100%}
 .legend{display:flex;flex-wrap:wrap;gap:9px 14px;margin-top:12px;font-size:12px;color:var(--muted)}
@@ -113,6 +123,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .wrow .en{font-size:17px;font-weight:600}
 .wrow .ck{color:var(--good);font-size:12px;font-weight:700}
 .wrow .ck.bad{color:var(--again)}
+.wrow .ck.miss{color:var(--hard);font-weight:800}
 .wrow .ck.mid{color:var(--accent2);font-size:11px;font-weight:700;
   background:color-mix(in srgb,var(--accent) 15%,transparent);padding:1px 7px;border-radius:10px}
 .wrow .zh{color:var(--muted);font-size:14px;flex:1}
@@ -176,6 +187,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .opt.correct{background:color-mix(in srgb,var(--good) 18%,transparent);border-color:var(--good)}
 .opt.wrong{background:color-mix(in srgb,var(--again) 18%,transparent);border-color:var(--again)}
 .opts + .toolbar{margin-top:14px}
+.verdict{margin-top:14px;text-align:center;font-size:13px;font-weight:600;color:var(--accent2);
+  background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:12px;padding:11px}
+.verdict.good{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.verdict.bad{color:var(--again);background:color-mix(in srgb,var(--again) 12%,transparent)}
+.q-cat .lv{font-size:10px;font-weight:700;color:var(--qual);margin-left:6px;
+  background:color-mix(in srgb,var(--qual) 18%,transparent);padding:2px 7px;border-radius:10px}
 
 /* ===== 结束页 ===== */
 .done{text-align:center;padding:52px 20px}
