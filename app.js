@@ -132,7 +132,7 @@
     const left = total - gone;
     const allDone = left === 0;
 
-    app.innerHTML = `<div class="screen">
+    app.innerHTML = `<div class="screen home">
       <div class="home-head">
         <div>
           <div class="brand">Basic English<span>850</span></div>
@@ -141,6 +141,7 @@
         <button class="theme-btn" data-act="theme">${(localStorage.getItem(TKEY)||"dark")==="dark"?"☀️":"🌙"}</button>
       </div>
 
+      <div class="home-main">
       <button class="go-big ${allDone ? "all-done" : ""}" data-act="${allDone ? "newround" : "go"}">
         <span class="t">${allDone ? `第 ${st.round} 轮完成` : (gone || once ? "继续刷词" : "开始刷词")}</span>
         <span class="s">${allDone ? "点一下开始第 " + (st.round+1) + " 轮" : `接着刷 ${Math.min(GROUP,left)} 个词`}</span>
@@ -163,13 +164,16 @@
         </div>
       </div>
 
-      <button class="row-link" data-act="cats">
-        <span class="ic">📚</span>
-        <span class="tx"><b>按分类查词</b><em>查词听音 · 可整类过一遍，不计进度</em></span>
-        <span class="n">›</span>
-      </button>
+      </div>
 
-      <div class="foot"><button class="link" data-act="reset">重置全部进度</button></div>
+      <div class="home-foot">
+        <button class="row-link" data-act="cats">
+          <span class="ic">📚</span>
+          <span class="tx"><b>按分类查词</b><em>查词听音 · 可整类过一遍，不计进度</em></span>
+          <span class="n">›</span>
+        </button>
+        <div class="foot"><button class="link" data-act="reset">重置全部进度</button></div>
+      </div>
     </div>`;
   }
 
@@ -177,15 +181,14 @@
   function renderCats(){
     screen = "cats";
     const rows = CATS.map(c => {
-      const tot = wordsIn(c.id).length, m = countIn(clear, c.id), p = Math.round(m/tot*100);
+      const tot = wordsIn(c.id).length, laps = (st.drill[c.id]||{}).laps | 0;
       return `<div class="cat-row" data-act="cat" data-id="${c.id}">
         <div class="cat-dot" style="background:var(--${c.id})"></div>
         <div class="cat-meta">
           <div class="cat-name">${c.name}<em>${c.zh}</em></div>
           <div class="cat-desc">${c.desc}</div>
-          <div class="cat-mini"><i style="width:${p}%;background:var(--${c.id})"></i></div>
         </div>
-        <div class="cat-prog"><b>${m}/${tot}</b>已消${(st.drill[c.id]||{}).laps ? `<i class="laps">过 ${st.drill[c.id].laps} 遍</i>` : ""}</div>
+        <div class="cat-prog"><b>${tot}</b>词${laps ? `<i class="laps">过 ${laps} 遍</i>` : ""}</div>
       </div>`;
     }).join("");
     app.innerHTML = `<div class="screen">
@@ -194,7 +197,7 @@
         <div class="ttl">按分类查词</div>
         <span class="count"></span>
       </div>
-      <div class="cat-list">${rows}</div>
+      <div class="cat-list roomy">${rows}</div>
     </div>`;
   }
   function renderBrowse(catId){
@@ -218,7 +221,7 @@
     app.innerHTML = `<div class="screen">
       <div class="bar">
         <button class="back" data-act="cats">‹ 返回</button>
-        <div class="ttl">${c.name}<small>${c.zh} · ${countIn(clear, catId)}/${list.length} 已消</small></div>
+        <div class="ttl">${c.name}<small>${c.zh} · ${list.length} 个词</small></div>
         <span class="count"></span>
       </div>
       <button class="row-link" data-act="drill" data-id="${catId}" style="margin-top:0">
@@ -347,8 +350,8 @@
           ? (hits(o.w) >= CLEAR ? `<div class="verdict good">连对 ${CLEAR} 次 · 本轮消掉 ✓</div>`
                                 : `<div class="verdict">答对 1 次 · 再对 1 次就消掉</div>`)
           : `<div class="verdict bad">留在本轮，等下再遇到</div>`)
-      : "";
-    app.innerHTML = `<div class="screen">
+      : `<div class="verdict ph"></div>`;   // 占位，免得答完题选项往上跳
+    app.innerHTML = `<div class="screen stage quiz">
       ${topBar()}
       <div class="q-card">
         <div class="q-cat">${dot(o.c)}${c.name}${listen ? '<span class="lv">听力</span>' : ''}</div>

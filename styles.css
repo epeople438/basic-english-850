@@ -19,14 +19,22 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;overscroll-behavior:none;
 }
-#app{max-width:600px;margin:0 auto;min-height:100%;
-  padding:max(14px,env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));}
+#app{max-width:600px;margin:0 auto;min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;
+  padding:max(14px,env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));}
 .hidden{display:none !important}
-.screen{animation:fade .22s ease}
+.screen{animation:fade .22s ease;flex:1;display:flex;flex-direction:column;min-height:0}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 /* ===== Home ===== */
+.home-main{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;gap:16px;padding:6px 0}
+.home-foot{margin-top:auto;padding-top:20px}
+@media (min-height:900px){          /* 平板/桌面：别把元素拉得太散 */
+  .home-main{justify-content:center;gap:40px}
+  .cat-list.roomy{justify-content:center;gap:14px}
+}
+
 .home-head{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 2px 16px}
 .brand{font-size:27px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:baseline;gap:8px}
 .brand span{font-size:12px;font-weight:700;color:var(--accent2);background:color-mix(in srgb,var(--accent) 16%,transparent);
@@ -36,24 +44,24 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   font-size:16px;display:flex;align-items:center;justify-content:center}
 
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);}
-.go-big{display:flex;flex-direction:column;align-items:center;gap:7px;width:100%;
-  padding:28px 20px;border-radius:22px;color:#fff;border:none;
+.go-big{display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;
+  padding:38px 20px;border-radius:24px;color:#fff;border:none;
   background:linear-gradient(135deg,var(--accent),#4470e6);box-shadow:var(--shadow);
   transition:transform .08s}
 .go-big:active{transform:scale(.98)}
-.go-big .t{font-size:25px;font-weight:800;letter-spacing:-.3px}
-.go-big .s{font-size:13px;opacity:.9;font-weight:500}
+.go-big .t{font-size:29px;font-weight:800;letter-spacing:-.3px}
+.go-big .s{font-size:14px;opacity:.9;font-weight:500}
 .go-big.all-done{background:linear-gradient(135deg,var(--good),#23a873)}
 
 .prog-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-  padding:16px;margin-top:14px}
+  padding:20px 18px}
 .prog-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:11px}
 .prog-num{font-size:26px;font-weight:800;line-height:1}
 .prog-num small{font-size:13px;color:var(--muted);font-weight:600;margin-left:4px}
 .prog-side{font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
 .prog-duo{display:flex;align-items:flex-end;gap:22px}
 .prog-duo .duo{display:flex;flex-direction:column;gap:3px}
-.prog-duo .duo b{font-size:30px;font-weight:800;line-height:1}
+.prog-duo .duo b{font-size:34px;font-weight:800;line-height:1}
 .prog-duo .duo b.hit{color:var(--good)}
 .prog-duo .duo span{font-size:11px;color:var(--muted);font-weight:600}
 .prog-duo .duo.sm{margin-left:auto;text-align:right}
@@ -84,6 +92,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 /* ===== 分类列表 ===== */
 .cat-list{display:flex;flex-direction:column;gap:10px}
+.cat-list.roomy{flex:1;justify-content:center;gap:12px;padding-bottom:10px}
+.cat-list.roomy .cat-row{padding:18px 16px}
+.cat-list.roomy .cat-dot{height:44px}
 .cat-row{background:var(--card);border:1px solid var(--line);border-radius:14px;
   padding:13px 15px;display:flex;align-items:center;gap:13px;transition:transform .08s}
 .cat-row:active{transform:scale(.99)}
@@ -100,7 +111,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   color:var(--qual);background:color-mix(in srgb,var(--qual) 16%,transparent);
   padding:2px 7px;border-radius:10px}
 
-.foot{text-align:center;margin-top:26px}
+.foot{text-align:center;margin-top:18px}
 .link{color:var(--muted);font-size:13px;text-decoration:underline;background:none}
 
 /* ===== 顶栏 ===== */
@@ -137,7 +148,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .wrow.bad{border-color:color-mix(in srgb,var(--again) 45%,transparent)}
 
 /* ===== 极速刷词 ===== */
-.stage{display:flex;flex-direction:column;min-height:calc(100vh - 150px);min-height:calc(100dvh - 150px)}
+.stage{display:flex;flex-direction:column;flex:1;min-height:0}
 .flash{position:relative;flex:1;background:linear-gradient(135deg,var(--card2),var(--card));
   border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
   padding:30px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -181,6 +192,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--accent);margin:16px auto 0}
 .listen-spk:active{transform:scale(.96)}
 .opts{display:flex;flex-direction:column;gap:10px}
+.quiz .opts{flex:1;justify-content:flex-end;gap:12px}
+.quiz .opt{padding:18px 16px}
+.quiz .q-card{padding:38px 18px}
+.verdict.ph{background:none;padding:11px;color:transparent}
 .opt{display:flex;align-items:center;gap:10px;padding:15px 16px;border-radius:14px;
   background:var(--card);border:1px solid var(--line);font-size:18px;font-weight:500;text-align:left;
   transition:transform .08s}
@@ -191,17 +206,19 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .opt.wrong{background:color-mix(in srgb,var(--again) 18%,transparent);border-color:var(--again)}
 .opts + .toolbar{margin-top:14px}
 .verdict{margin-top:14px;text-align:center;font-size:13px;font-weight:600;color:var(--accent2);
-  background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:12px;padding:11px}
+  background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:12px;padding:11px;
+  min-height:42px;display:flex;align-items:center;justify-content:center}
 .verdict.good{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
 .verdict.bad{color:var(--again);background:color-mix(in srgb,var(--again) 12%,transparent)}
 .q-cat .lv{font-size:10px;font-weight:700;color:var(--qual);margin-left:6px;
   background:color-mix(in srgb,var(--qual) 18%,transparent);padding:2px 7px;border-radius:10px}
 
 /* ===== 结束页 ===== */
-.done{text-align:center;padding:52px 20px}
+.done{text-align:center;padding:20px;flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
 .done .emoji{font-size:52px}
 .done .t{font-size:21px;font-weight:800;margin:14px 0 6px}
-.done .s{color:var(--muted);font-size:14px;margin-bottom:24px}
+.done .s{color:var(--muted);font-size:14px;margin-bottom:28px;max-width:320px}
 .done-btns{display:flex;flex-direction:column;align-items:center;gap:10px}
 .btn-primary{display:inline-block;background:linear-gradient(135deg,var(--accent),#4470e6);color:#fff;
   font-size:16px;font-weight:700;padding:13px 32px;border-radius:14px}
