@@ -219,17 +219,19 @@
       </div>`;
     }).join("");
     app.innerHTML = `<div class="screen">
-      <div class="bar">
-        <button class="back" data-act="cats">‹ 返回</button>
-        <div class="ttl">${c.name}<small>${c.zh} · ${list.length} 个词</small></div>
-        <span class="count"></span>
+      <div class="sticky-head">
+        <div class="bar">
+          <button class="back" data-act="cats">‹ 返回</button>
+          <div class="ttl">${c.name}<small>${c.zh} · ${list.length} 个词</small></div>
+          <span class="count"></span>
+        </div>
+        <button class="row-link" data-act="drill" data-id="${catId}">
+          <span class="ic">⚡️</span>
+          <span class="tx"><b>${dpos ? "接着过这一类" : "过一遍这一类"}</b><em>${dsub}</em></span>
+          <span class="n">${dlaps ? dlaps + " 遍" : "›"}</span>
+        </button>
       </div>
-      <button class="row-link" data-act="drill" data-id="${catId}" style="margin-top:0">
-        <span class="ic">⚡️</span>
-        <span class="tx"><b>${dpos ? "接着过这一类" : "过一遍这一类"}</b><em>${dsub}</em></span>
-        <span class="n">${dlaps ? dlaps + " 遍" : "›"}</span>
-      </button>
-      <div class="words" style="margin-top:14px">${rows}</div>
+      <div class="words">${rows}</div>
     </div>`;
   }
 
@@ -492,8 +494,56 @@
     }
   });
 
+  // ================= 左滑返回（手机/iPad） =================
+  function goBack(){
+    if (screen === "sess" || screen === "done"){
+      if (sess && sess.drill){ const c = sess.cat; sess = null; renderBrowse(c); }
+      else { sess = null; renderHome(); }
+      return true;
+    }
+    if (screen === "browse"){ renderCats(); return true; }
+    if (screen === "cats"){ sess = null; renderHome(); return true; }
+    return false;                                  // 首页没有上一层
+  }
+
+  let hint = null, sx = 0, sy = 0, stime = 0, swiping = false;
+  const EDGE = 34, NEED = 62;                      // 从左边缘 34px 内起手，右滑 62px 触发
+  function setHint(dx){
+    if (!hint) return;
+    if (dx <= 0){ hint.style.opacity = "0"; hint.style.transform = "translate(-100%,-50%)"; return; }
+    const p = Math.min(dx / NEED, 1);
+    hint.style.opacity = String(Math.min(p * 1.2, 1));
+    hint.style.transform = `translate(${-100 + p * 130}%,-50%) scale(${.8 + p * .2})`;
+    hint.classList.toggle("ready", p >= 1);
+  }
+  document.addEventListener("touchstart", e => {
+    swiping = false;
+    if (e.touches.length !== 1 || screen === "home") return;
+    const t = e.touches[0];
+    if (t.clientX > EDGE) return;
+    swiping = true; sx = t.clientX; sy = t.clientY; stime = Date.now();
+  }, { passive:true });
+  document.addEventListener("touchmove", e => {
+    if (!swiping) return;
+    const t = e.touches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
+    if (dy > 44 && dx < 30){ swiping = false; setHint(0); return; }   // 其实是在竖着滚
+    setHint(dx);
+  }, { passive:true });
+  document.addEventListener("touchend", e => {
+    if (!swiping) return;
+    swiping = false;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
+    setHint(0);
+    if (dx >= NEED && dx > dy * 1.2 && Date.now() - stime < 900) goBack();
+  }, { passive:true });
+  document.addEventListener("touchcancel", () => { swiping = false; setHint(0); }, { passive:true });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") goBack(); });
+
   // ---------- boot ----------
   applyTheme();
+  hint = document.createElement("div");
+  hint.id = "backhint"; hint.textContent = "‹";
+  document.body.appendChild(hint);
   renderHome();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 })();
