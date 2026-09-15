@@ -96,6 +96,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .cat-mini i{display:block;height:100%;border-radius:6px}
 .cat-prog{text-align:right;font-size:11px;color:var(--muted);flex:none}
 .cat-prog b{display:block;font-size:14px;color:var(--text)}
+.cat-prog .laps{display:block;font-style:normal;font-size:10px;font-weight:700;margin-top:4px;
+  color:var(--qual);background:color-mix(in srgb,var(--qual) 16%,transparent);
+  padding:2px 7px;border-radius:10px}
 
 .foot{text-align:center;margin-top:26px}
 .link{color:var(--muted);font-size:13px;text-decoration:underline;background:none}

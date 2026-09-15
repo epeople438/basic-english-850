@@ -11,6 +11,7 @@
   // ================= state =================
   // st.p[word] = { s:本轮连对次数(0/1/2), seen:见过没, n:练过次数, e:错过次数 }
   // st.cur = 下一个要检查的词表下标    st.round = 第几轮
+  // st.drill[cat] = { i:看到第几个, laps:整类过完几遍 }
   let st = load();
 
   function load(){
@@ -18,7 +19,7 @@
     return norm(migrate());
   }
   function migrate(){
-    const s = { p:{}, cur:0, round:1, opt:{} };
+    const s = { p:{}, cur:0, round:1, drill:{}, opt:{} };
     try {                                          // v3：lv → 连对次数
       const v3 = JSON.parse(localStorage.getItem(OLD3));
       if (v3 && v3.p){
@@ -42,12 +43,13 @@
     return s;
   }
   function norm(s){
-    s.p = s.p || {}; s.cur = s.cur | 0; s.round = s.round || 1;
+    s.p = s.p || {}; s.cur = s.cur | 0; s.round = s.round || 1; s.drill = s.drill || {};
     s.opt = Object.assign({ zh:true }, s.opt || {});
     return s;
   }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch {} }
   function rec(w){ return st.p[w] || (st.p[w] = { s:0, seen:0, n:0, e:0 }); }
+  function drec(cat){ return st.drill[cat] || (st.drill[cat] = { i:0, laps:0 }); }
 
   const hits  = w => { const r = st.p[w]; return r ? r.s|0 : 0; };
   const clear = w => hits(w) >= CLEAR;          // 本轮已消掉
@@ -183,7 +185,7 @@
           <div class="cat-desc">${c.desc}</div>
           <div class="cat-mini"><i style="width:${p}%;background:var(--${c.id})"></i></div>
         </div>
-        <div class="cat-prog"><b>${m}/${tot}</b>已消</div>
+        <div class="cat-prog"><b>${m}/${tot}</b>已消${(st.drill[c.id]||{}).laps ? `<i class="laps">过 ${st.drill[c.id].laps} 遍</i>` : ""}</div>
       </div>`;
     }).join("");
     app.innerHTML = `<div class="screen">
@@ -198,6 +200,10 @@
   function renderBrowse(catId){
     screen = "browse";
     const c = CAT[catId], list = wordsIn(catId);
+    const d = st.drill[catId] || { i:0, laps:0 }, dpos = d.i | 0, dlaps = d.laps | 0;
+    const dsub = dpos ? `上次看到第 ${dpos+1} 个 · 点一下接着过`
+               : dlaps ? `整类已过 ${dlaps} 遍 · 再从头过一遍`
+               : `${list.length} 个词自动读音 · 只看不考，不计进度`;
     const rows = list.map(o => {
       const h = hits(o.w);
       const tag = h >= CLEAR ? '<span class="ck">✓</span>'
@@ -217,8 +223,8 @@
       </div>
       <button class="row-link" data-act="drill" data-id="${catId}" style="margin-top:0">
         <span class="ic">⚡️</span>
-        <span class="tx"><b>过一遍这一类</b><em>${list.length} 个词自动读音 · 只看不考，不计进度</em></span>
-        <span class="n">›</span>
+        <span class="tx"><b>${dpos ? "接着过这一类" : "过一遍这一类"}</b><em>${dsub}</em></span>
+        <span class="n">${dlaps ? dlaps + " 遍" : "›"}</span>
       </button>
       <div class="words" style="margin-top:14px">${rows}</div>
     </div>`;
@@ -241,7 +247,9 @@
   function startDrill(catId){
     const list = wordsIn(catId);
     if (!list.length) return false;
-    sess = { list, idx:0, phase:"card", drill:true, cat:catId, peek:false, id:++tok };
+    const d = drec(catId);
+    let idx = d.i | 0; if (idx >= list.length) idx = 0;
+    sess = { list, idx, phase:"card", drill:true, cat:catId, peek:false, id:++tok };
     screen = "sess";
     render(); speak(cur().w);
     return true;
@@ -286,7 +294,7 @@
   function topBar(){
     return `<div class="bar">
       <button class="back" data-act="${sess.drill ? "cat" : "home"}" ${sess.drill?`data-id="${sess.cat}"`:""}>‹ 退出</button>
-      <div class="ttl">${sess.drill ? CAT[sess.cat].zh : "刷词"}<small>${sess.drill ? "只看不考" : "本轮还剩 " + leftCount() + " 词"}</small></div>
+      <div class="ttl">${sess.drill ? CAT[sess.cat].zh : "刷词"}<small>${sess.drill ? ("只看不考" + ((st.drill[sess.cat]||{}).laps ? " · 已过 " + st.drill[sess.cat].laps + " 遍" : "")) : "本轮还剩 " + leftCount() + " 词"}</small></div>
       <span class="count">${sess.idx+1}/${sess.list.length}</span>
     </div>
     <div class="pline"><i style="width:${sess.idx/sess.list.length*100}%"></i></div>`;
@@ -373,12 +381,30 @@
       <div class="keytips">空格/→ 下一个 · ← 上一个 · R 重听</div>
     </div>`;
   }
-  function drillStep(d){
-    const i = sess.idx + d;
+  function drillStep(step){
+    const i = sess.idx + step;
     if (i < 0) return;
-    if (i >= sess.list.length){ renderBrowse(sess.cat); sess = null; return; }
+    const d = drec(sess.cat);
+    if (i >= sess.list.length){            // 整类过完一遍
+      d.laps = (d.laps|0) + 1; d.i = 0; save();
+      renderDrillDone(); return;
+    }
     sess.idx = i; sess.peek = false;
+    d.i = i; save();
     render(); speak(cur().w);
+  }
+  function renderDrillDone(){
+    screen = "done";
+    const c = CAT[sess.cat], d = drec(sess.cat), n = sess.list.length;
+    app.innerHTML = `<div class="screen done">
+      <div class="emoji">🔁</div>
+      <div class="t">${c.zh} 过完第 ${d.laps} 遍</div>
+      <div class="s">${n} 个词 · 这一类累计过了 ${d.laps} 遍</div>
+      <div class="done-btns">
+        <button class="btn-primary" data-act="drill" data-id="${sess.cat}">再过一遍</button>
+        <button class="btn-ghost" data-act="cat" data-id="${sess.cat}">返回词表</button>
+      </div>
+    </div>`;
   }
 
   function pickOpt(i){
@@ -416,7 +442,7 @@
       case "theme": toggleTheme(); break;
       case "home": sess = null; renderHome(); break;
       case "reset":
-        if (confirm("确定重置全部进度？")){ st = norm({ p:{}, cur:0, round:1, opt:st.opt }); save(); renderHome(); }
+        if (confirm("确定重置全部进度？")){ st = norm({ p:{}, cur:0, round:1, drill:{}, opt:st.opt }); save(); renderHome(); }
         break;
       case "newround": newRound(); if (!start()) renderHome(); break;
       case "cats": sess = null; renderCats(); break;
