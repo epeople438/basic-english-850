@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "be850",
+  "compatibility_date": "2026-09-15",
+  "observability": { "enabled": true },
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "850.vofouirjhfug.eu.cc", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "."
+  }
+}

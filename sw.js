@@ -1,11 +1,16 @@
-const SHELL = "be850-shell-v19";
+const SHELL = "be850-shell-v20";
 const AUDIO = "be850-audio-v1";
 const ASSETS = [
-  "./", "./index.html", "./styles.css?v=19", "./app.js?v=19", "./data.js?v=19",
+  "./", "./styles.css?v=20", "./app.js?v=20", "./data.js?v=20",
   "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"
 ];
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(SHELL).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(SHELL);
+    // 逐个缓存：个别资源失败（重定向、临时 5xx）也不该让整个 SW 装不上
+    await Promise.all(ASSETS.map(u => c.add(u).catch(() => {})));
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
@@ -32,6 +37,6 @@ self.addEventListener("fetch", e => {
       const copy = res.clone();
       caches.open(SHELL).then(c => c.put(req, copy)).catch(()=>{});
       return res;
-    }).catch(() => caches.match(req).then(hit => hit || caches.match("./index.html")))
+    }).catch(() => caches.match(req).then(hit => hit || caches.match("./")))
   );
 });

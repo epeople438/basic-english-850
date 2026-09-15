@@ -1,0 +1,11 @@
+# 只发布网页本体和音频，其余一律不上传
+mac/
+app/
+.git/
+.claude/
+node_modules/
+*.zip
+.DS_Store
+.gitignore
+.assetsignore
+wrangler.jsonc
