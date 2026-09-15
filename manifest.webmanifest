@@ -1,7 +1,7 @@
 {
   "name": "Basic English · 850",
   "short_name": "Basic English",
-  "description": "Ogden 基础英语 850 词 · 闪卡 · 测验 · 间隔重复",
+  "description": "Ogden 基础英语 850 词 · 极速刷词 · 英中互测 · 错题本",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -1,4 +1,4 @@
-const SHELL = "be850-shell-v3";
+const SHELL = "be850-shell-v4";
 const AUDIO = "be850-audio-v1";
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./app.js", "./data.js",
