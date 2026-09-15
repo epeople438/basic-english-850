@@ -143,6 +143,8 @@
     const total = W.length;
     const gone = countIn(clear), once = countIn(w => hits(w) === 1);
     const fresh = countIn(w => !seen(w));
+    const practiced = total - fresh;                 // 已练 = 见过的
+    const zero = practiced - once - gone;            // 练过但当前 0 次（答错归零 / 还没答对）
     const left = total - gone;
     const allDone = left === 0;
 
@@ -162,20 +164,17 @@
       </button>
 
       <div class="prog-card">
-        <div class="prog-duo">
-          <div class="duo"><b>${total - fresh}</b><span>已练 / ${total}</span></div>
-          <div class="duo"><b class="${gone ? "hit" : ""}">${gone}</b><span>已消 / ${total}</span></div>
-          <div class="duo sm"><b>${once}</b><span>对过一次</span></div>
+        <div class="prog-rows">
+          <div class="prow"><i style="background:var(--muted)"></i><span>已练</span><b>${practiced}<em>/ ${total}</em></b></div>
+          <div class="prow"><i style="background:var(--accent)"></i><span>对过 1 次</span><b>${once}<em>/ ${total}</em></b></div>
+          <div class="prow"><i style="background:var(--good)"></i><span>对过 2 次 · 已消掉</span><b class="${gone ? "hit" : ""}">${gone}<em>/ ${total}</em></b></div>
         </div>
         <div class="bar-track">
           <div class="bar-seg" style="width:${gone/total*100}%;background:var(--good)"></div>
           <div class="bar-seg" style="width:${once/total*100}%;background:var(--accent)"></div>
-          <div class="bar-seg" style="width:${(total-gone-once-fresh)/total*100}%;background:var(--hard)"></div>
+          <div class="bar-seg" style="width:${zero/total*100}%;background:var(--muted)"></div>
         </div>
-        <div class="prog-legend">
-          <span>${dot("good")}已消掉</span><span>${dot("accent")}对过一次</span>
-          <span>${dot("hard")}错过，待重来</span><span>${dot("track")}没见过</span>
-        </div>
+        <div class="prog-legend"><span>灰＝练过但还没对　蓝＝对过 1 次　绿＝对过 2 次已消掉　空白＝没见过</span></div>
       </div>
 
       </div>
@@ -277,10 +276,10 @@
     if (!sess) return;
     if (sess.idx >= sess.list.length){ renderDone(); return; }
     const o = cur();
-    sess.phase = seen(o.w) ? "quiz" : "card";   // 没见过 → 先给一张卡
+    sess.phase = seen(o.w) ? "quiz" : "card";   // 没见过 → 先亮答案（选项模糊），点一下再答
     sess.listen = hits(o.w) === 1;              // 形态进门就锁定，答完题 s 变了也不受影响
     sess.picked = null;
-    if (sess.phase === "quiz") makeOpts();
+    makeOpts();                                 // 选项一开始就生成，布局才不会变
     render();
     speak(o.w);
     const nx = sess.list[sess.idx+1];
@@ -296,7 +295,12 @@
   function cardToQuiz(){
     if (!sess || sess.phase !== "card" || sess.drill) return;
     markSeen(cur().w);
-    sess.phase = "quiz"; sess.listen = false; makeOpts(); render(); speak(cur().w);
+    sess.phase = "quiz"; sess.listen = false;
+    const scr = app.querySelector(".screen");
+    if (scr){ scr.classList.remove("preview"); scr.removeAttribute("data-act"); }
+    const tip = app.querySelector(".q-tip");
+    if (tip) tip.textContent = "选出正确的中文意思";   // 中文释义 → 答题提示
+    speak(cur().w);
   }
   function step(){
     const i = IDX[cur().w];
@@ -307,9 +311,7 @@
   }
 
   function render(){
-    if (sess.drill) renderDrill();
-    else if (sess.phase === "card") renderCard();
-    else renderQuiz();
+    if (sess.drill) renderDrill(); else renderQuiz();
     fitWords();
   }
   // 单词一律单行：渲染后量一下，放不下就按比例把字号缩到刚好
@@ -332,29 +334,17 @@
     <div class="pline"><i style="width:${sess.idx/sess.list.length*100}%"></i></div>`;
   }
 
-  // ---- 新词卡：看一眼，点一下立刻考 ----
-  function renderCard(){
-    const o = cur(), c = CAT[o.c];
-    app.innerHTML = `<div class="screen stage">
-      ${topBar()}
-      <div class="flash" data-act="card-go">
-        <div class="cat">${dot(o.c)}${c.name}</div>
-        <button class="spk-btn" data-act="say" data-w="${o.w}" aria-label="发音">${ICON.spk}</button>
-        <div class="badge">新词</div>
-        <div class="speed-word">${o.w}</div>
-        <div class="speed-zh">${o.zh}</div>
-        <div class="hint">记住它 · 点一下马上考这个词</div>
-      </div>
-      <div class="keytips">空格 继续 · R 重听</div>
-    </div>`;
-  }
-
   // ---- 考题：第 1 次看词选中文，第 2 次纯听音选中文 ----
   function renderQuiz(){
     const o = cur(), c = CAT[o.c], picked = sess.picked != null;
-    const listen = !!sess.listen;               // 对过一次了 → 升级成纯听音（进门时锁定）
+    const preview = sess.phase === "card";      // 新词：先把答案摆出来，选项模糊着
+    const listen = !preview && !!sess.listen;   // 对过一次了 → 升级成纯听音（进门时锁定）
     let stem, tip;
-    if (!listen){
+    if (preview){
+      stem = `<div class="q-word">${o.w}</div>
+              <button class="spk-btn flat" data-act="say" data-w="${o.w}">${ICON.spk}<span>听发音</span></button>`;
+      tip = `<span class="q-mean">${o.zh}</span>`;
+    } else if (!listen){
       stem = `<div class="q-word">${o.w}</div>
               <button class="spk-btn flat" data-act="say" data-w="${o.w}">${ICON.spk}<span>听发音</span></button>`;
       tip = "选出正确的中文意思";
@@ -380,10 +370,10 @@
                                 : `<div class="verdict">答对 1 次 · 再对 1 次就消掉</div>`)
           : `<div class="verdict bad">留在本轮，等下再遇到</div>`)
       : `<div class="verdict ph"></div>`;   // 占位，免得答完题选项往上跳
-    app.innerHTML = `<div class="screen stage quiz">
+    app.innerHTML = `<div class="screen stage quiz${preview ? " preview" : ""}"${preview ? ' data-act="card-go"' : ""}>
       ${topBar()}
       <div class="q-card">
-        <div class="q-cat">${dot(o.c)}${c.name}${listen ? '<span class="lv">听力</span>' : ''}</div>
+        <div class="q-cat">${dot(o.c)}${c.name}${listen ? '<span class="lv">听力</span>' : preview ? '<span class="lv new">新词</span>' : ''}</div>
         ${stem}
         ${tip ? `<div class="q-tip">${tip}</div>` : ""}
       </div>
@@ -440,7 +430,9 @@
   }
 
   function pickOpt(i){
-    if (!sess || sess.drill || sess.phase !== "quiz" || sess.picked != null) return;
+    if (!sess || sess.drill) return;
+    if (sess.phase === "card"){ cardToQuiz(); return; }   // 模糊阶段点哪儿都只是揭开
+    if (sess.picked != null) return;
     sess.picked = i;
     const o = cur(), right = i === sess.ans;
     if (right){ sess.right++; hit(o.w); if (clear(o.w)) sess.gone++; }

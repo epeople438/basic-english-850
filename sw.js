@@ -1,7 +1,7 @@
-const SHELL = "be850-shell-v12";
+const SHELL = "be850-shell-v19";
 const AUDIO = "be850-audio-v1";
 const ASSETS = [
-  "./", "./index.html", "./styles.css", "./app.js", "./data.js",
+  "./", "./index.html", "./styles.css?v=19", "./app.js?v=19", "./data.js?v=19",
   "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"
 ];
 self.addEventListener("install", e => {
