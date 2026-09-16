@@ -148,7 +148,7 @@
     const left = total - gone;
     const allDone = left === 0;
 
-    app.innerHTML = `<div class="screen home">
+    app.innerHTML = `<div class="screen home${SA()}">
       <div class="home-head">
         <div>
           <div class="brand">Basic English<span>850</span></div>
@@ -204,7 +204,7 @@
         <div class="cat-prog"><b>${tot}</b>词${laps ? `<i class="laps">过 ${laps} 遍</i>` : ""}</div>
       </div>`;
     }).join("");
-    app.innerHTML = `<div class="screen">
+    app.innerHTML = `<div class="screen${SA()}">
       <div class="bar">
         <button class="back" data-act="back">${ICON.back}返回</button>
         <div class="ttl">按分类查词</div>
@@ -231,7 +231,7 @@
         <button class="spk" data-act="say" data-w="${o.w}" aria-label="发音">${ICON.spk}</button>
       </div>`;
     }).join("");
-    app.innerHTML = `<div class="screen">
+    app.innerHTML = `<div class="screen${SA()}">
       <div class="sticky-head">
         <div class="bar">
           <button class="back" data-act="back">${ICON.back}返回</button>
@@ -370,7 +370,7 @@
                                 : `<div class="verdict">答对 1 次 · 再对 1 次就消掉</div>`)
           : `<div class="verdict bad">留在本轮，等下再遇到</div>`)
       : `<div class="verdict ph"></div>`;   // 占位，免得答完题选项往上跳
-    app.innerHTML = `<div class="screen stage quiz${preview ? " preview" : ""}"${preview ? ' data-act="card-go"' : ""}>
+    app.innerHTML = `<div class="screen stage quiz${preview ? " preview" : ""}${SA()}"${preview ? ' data-act="card-go"' : ""}>
       ${topBar()}
       <div class="q-card">
         <div class="q-cat">${dot(o.c)}${c.name}${listen ? '<span class="lv">听力</span>' : preview ? '<span class="lv new">新词</span>' : ''}</div>
@@ -385,7 +385,7 @@
   // ---- 分类里的「过一遍」：纯卡片，不计进度 ----
   function renderDrill(){
     const o = cur(), c = CAT[o.c], on = st.opt.zh, show = on || sess.peek;
-    app.innerHTML = `<div class="screen stage">
+    app.innerHTML = `<div class="screen stage${SA()}">
       ${topBar()}
       <div class="flash" data-act="next">
         <div class="cat">${dot(o.c)}${c.name}</div>
@@ -418,7 +418,7 @@
   function renderDrillDone(){
     screen = "done";
     const c = CAT[sess.cat], d = drec(sess.cat), n = sess.list.length;
-    app.innerHTML = `<div class="screen done">
+    app.innerHTML = `<div class="screen done${SA()}">
       <div class="emoji">🔁</div>
       <div class="t">${c.zh} 过完第 ${d.laps} 遍</div>
       <div class="s">${n} 个词 · 这一类累计过了 ${d.laps} 遍</div>
@@ -478,7 +478,7 @@
     screen = "done";
     const n = sess.list.length, left = leftCount();
     const allDone = left === 0;
-    app.innerHTML = `<div class="screen done">
+    app.innerHTML = `<div class="screen done${SA()}">
       <div class="emoji">${allDone ? "🏆" : sess.wrong === 0 ? "🎯" : "⚡️"}</div>
       <div class="t">${allDone ? `第 ${st.round} 轮全部消完` : `消掉 ${sess.gone} 个`}</div>
       <div class="s">${allDone ? "850 个词都连对 " + CLEAR + " 次了"
@@ -537,12 +537,18 @@
   // ================= 路由 =================
   // 每个页面对应一个 hash，浏览器自动记历史，iOS 的系统左滑返回（带跟手动画）
   // 就能直接用——比自己写 touch 手势好得多。
-  function go(hash){ if (location.hash !== hash) location.hash = hash; }
+  // 后退时页面已被系统手势滑回到位，再播一遍入场动画就会「又跳一下」。
+  // 记下我们主动跳的 hash，route 时对不上就说明是用户在后退/前进。
+  let wanted = null, noAnim = false;
+  const SA = () => noAnim ? " no-anim" : "";
+  function go(hash){ if (location.hash !== hash){ wanted = hash; location.hash = hash; } }
   function back(){
     const h = location.hash;
     if (h && h !== "#/" && h !== "#") history.back();
   }
   function route(){
+    noAnim = (wanted !== location.hash);          // 不是我们主动跳的 → 是后退/前进
+    wanted = null;
     const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
     window.scrollTo(0, 0);
     const p0 = parts[0] || "";
@@ -551,6 +557,7 @@
     else if (p0 === "drill" && parts[1] && CAT[parts[1]]){ if (!startDrill(parts[1])) go("#/"); }
     else if (p0 === "study"){ if (!start()) go("#/"); }
     else { sess = null; renderHome(); }
+    noAnim = false;                               // 页内的重绘照常有动画
   }
   window.addEventListener("hashchange", route);
   document.addEventListener("keydown", e => { if (e.key === "Escape") back(); });
@@ -558,6 +565,7 @@
   // ---------- boot ----------
   applyTheme();
   if (!location.hash) history.replaceState(null, "", "#/");   // 首页占一条，之后的导航才有的退
+  wanted = location.hash;                                     // 首次加载算「进入」，照常播入场动画
   route();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 })();
