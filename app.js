@@ -131,7 +131,7 @@
   }
   function toggleTheme(){
     const t = (localStorage.getItem(TKEY) || "dark") === "dark" ? "light" : "dark";
-    localStorage.setItem(TKEY, t); applyTheme(); renderHome();
+    localStorage.setItem(TKEY, t); applyTheme(); route();
   }
 
   const dot = c => `<i style="background:var(--${c})"></i>`;
@@ -206,7 +206,7 @@
     }).join("");
     app.innerHTML = `<div class="screen">
       <div class="bar">
-        <button class="back" data-act="home">${ICON.back}返回</button>
+        <button class="back" data-act="back">${ICON.back}返回</button>
         <div class="ttl">按分类查词</div>
         <span class="count"></span>
       </div>
@@ -234,7 +234,7 @@
     app.innerHTML = `<div class="screen">
       <div class="sticky-head">
         <div class="bar">
-          <button class="back" data-act="cats">${ICON.back}返回</button>
+          <button class="back" data-act="back">${ICON.back}返回</button>
           <div class="ttl">${c.name}<small>${c.zh} · ${list.length} 个词</small></div>
           <span class="count"></span>
         </div>
@@ -327,7 +327,7 @@
   }
   function topBar(){
     return `<div class="bar">
-      <button class="back" data-act="${sess.drill ? "cat" : "home"}" ${sess.drill?`data-id="${sess.cat}"`:""}>${ICON.back}退出</button>
+      <button class="back" data-act="back">${ICON.back}退出</button>
       <div class="ttl">${sess.drill ? CAT[sess.cat].zh : "刷词"}<small>${sess.drill ? ("只看不考" + ((st.drill[sess.cat]||{}).laps ? " · 已过 " + st.drill[sess.cat].laps + " 遍" : "")) : "本轮还剩 " + leftCount() + " 词"}</small></div>
       <span class="count">${sess.idx+1}/${sess.list.length}</span>
     </div>
@@ -405,7 +405,7 @@
   }
   function drillStep(step){
     const i = sess.idx + step;
-    if (i < 0) return;
+    if (i < 0){ back(); return; }
     const d = drec(sess.cat);
     if (i >= sess.list.length){            // 整类过完一遍
       d.laps = (d.laps|0) + 1; d.i = 0; save();
@@ -423,8 +423,8 @@
       <div class="t">${c.zh} 过完第 ${d.laps} 遍</div>
       <div class="s">${n} 个词 · 这一类累计过了 ${d.laps} 遍</div>
       <div class="done-btns">
-        <button class="btn-primary" data-act="drill" data-id="${sess.cat}">再过一遍</button>
-        <button class="btn-ghost" data-act="cat" data-id="${sess.cat}">返回词表</button>
+        <button class="btn-primary" data-act="redrill" data-id="${sess.cat}">再过一遍</button>
+        <button class="btn-ghost" data-act="back">返回词表</button>
       </div>
     </div>`;
   }
@@ -496,20 +496,22 @@
     const t = e.target.closest("[data-act]"); if (!t) return;
     switch (t.dataset.act){
       case "theme": toggleTheme(); break;
-      case "home": sess = null; renderHome(); break;
+      case "home": go("#/"); break;
+      case "back": back(); break;
       case "reset":
-        if (confirm("确定重置全部进度？")){ st = norm({ p:{}, cur:0, round:1, drill:{}, opt:st.opt }); save(); renderHome(); }
+        if (confirm("确定重置全部进度？")){ st = norm({ p:{}, cur:0, round:1, drill:{}, opt:st.opt }); save(); go("#/"); route(); }
         break;
-      case "newround": newRound(); if (!start()) renderHome(); break;
-      case "cats": sess = null; renderCats(); break;
-      case "cat": sess = null; renderBrowse(t.dataset.id); break;
-      case "drill": startDrill(t.dataset.id); break;
+      case "newround": newRound(); if (!start()) go("#/"); break;
+      case "cats": go("#/cats"); break;
+      case "cat": go("#/cat/" + t.dataset.id); break;
+      case "drill": go("#/drill/" + t.dataset.id); break;
       case "say": speak(t.dataset.w); break;
-      case "go": if (!start()) renderHome(); break;
+      case "go": if (location.hash.startsWith("#/study")) { if (!start()) go("#/"); } else go("#/study"); break;
       case "card-go": cardToQuiz(); break;
       case "opt": pickOpt(+t.dataset.i); break;
       case "next": drillStep(1); break;
       case "prev": drillStep(-1); break;
+      case "redrill": startDrill(t.dataset.id); break;   // 同一个 hash 内重来，不新增历史
       case "peek": sess.peek = true; render(); break;
       case "tzh": st.opt.zh = !st.opt.zh; save(); sess.peek = false; render(); break;
     }
@@ -532,56 +534,30 @@
     }
   });
 
-  // ================= 左滑返回（手机/iPad） =================
-  function goBack(){
-    if (screen === "sess" || screen === "done"){
-      if (sess && sess.drill){ const c = sess.cat; sess = null; renderBrowse(c); }
-      else { sess = null; renderHome(); }
-      return true;
-    }
-    if (screen === "browse"){ renderCats(); return true; }
-    if (screen === "cats"){ sess = null; renderHome(); return true; }
-    return false;                                  // 首页没有上一层
+  // ================= 路由 =================
+  // 每个页面对应一个 hash，浏览器自动记历史，iOS 的系统左滑返回（带跟手动画）
+  // 就能直接用——比自己写 touch 手势好得多。
+  function go(hash){ if (location.hash !== hash) location.hash = hash; }
+  function back(){
+    const h = location.hash;
+    if (h && h !== "#/" && h !== "#") history.back();
   }
-
-  let hint = null, sx = 0, sy = 0, stime = 0, swiping = false;
-  const EDGE = 34, NEED = 62;                      // 从左边缘 34px 内起手，右滑 62px 触发
-  function setHint(dx){
-    if (!hint) return;
-    if (dx <= 0){ hint.style.opacity = "0"; hint.style.transform = "translate(-100%,-50%)"; return; }
-    const p = Math.min(dx / NEED, 1);
-    hint.style.opacity = String(Math.min(p * 1.2, 1));
-    hint.style.transform = `translate(${-100 + p * 130}%,-50%) scale(${.8 + p * .2})`;
-    hint.classList.toggle("ready", p >= 1);
+  function route(){
+    const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+    window.scrollTo(0, 0);
+    const p0 = parts[0] || "";
+    if (p0 === "cats"){ sess = null; renderCats(); }
+    else if (p0 === "cat" && parts[1] && CAT[parts[1]]){ sess = null; renderBrowse(parts[1]); }
+    else if (p0 === "drill" && parts[1] && CAT[parts[1]]){ if (!startDrill(parts[1])) go("#/"); }
+    else if (p0 === "study"){ if (!start()) go("#/"); }
+    else { sess = null; renderHome(); }
   }
-  document.addEventListener("touchstart", e => {
-    swiping = false;
-    if (e.touches.length !== 1 || screen === "home") return;
-    const t = e.touches[0];
-    if (t.clientX > EDGE) return;
-    swiping = true; sx = t.clientX; sy = t.clientY; stime = Date.now();
-  }, { passive:true });
-  document.addEventListener("touchmove", e => {
-    if (!swiping) return;
-    const t = e.touches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
-    if (dy > 44 && dx < 30){ swiping = false; setHint(0); return; }   // 其实是在竖着滚
-    setHint(dx);
-  }, { passive:true });
-  document.addEventListener("touchend", e => {
-    if (!swiping) return;
-    swiping = false;
-    const t = e.changedTouches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy);
-    setHint(0);
-    if (dx >= NEED && dx > dy * 1.2 && Date.now() - stime < 900) goBack();
-  }, { passive:true });
-  document.addEventListener("touchcancel", () => { swiping = false; setHint(0); }, { passive:true });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") goBack(); });
+  window.addEventListener("hashchange", route);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") back(); });
 
   // ---------- boot ----------
   applyTheme();
-  hint = document.createElement("div");
-  hint.id = "backhint"; hint.textContent = "‹";
-  document.body.appendChild(hint);
-  renderHome();
+  if (!location.hash) history.replaceState(null, "", "#/");   // 首页占一条，之后的导航才有的退
+  route();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 })();
