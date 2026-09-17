@@ -124,13 +124,13 @@
 
   // ================= theme =================
   function applyTheme(){
-    const t = localStorage.getItem(TKEY) || "dark";
+    const t = localStorage.getItem(TKEY) || "light";
     document.documentElement.dataset.theme = t;
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.content = t === "light" ? "#f3f5fb" : "#0f1115";
+    if (m) m.content = t === "light" ? "#f5f5f5" : "#0a0a0a";
   }
   function toggleTheme(){
-    const t = (localStorage.getItem(TKEY) || "dark") === "dark" ? "light" : "dark";
+    const t = (localStorage.getItem(TKEY) || "light") === "dark" ? "light" : "dark";
     localStorage.setItem(TKEY, t); applyTheme(); route();
   }
 
@@ -154,7 +154,7 @@
           <div class="brand">Basic English<span>850</span></div>
           <div class="tagline">第 ${st.round} 轮 · 连对 ${CLEAR} 次消掉一个词</div>
         </div>
-        <button class="theme-btn" data-act="theme" aria-label="切换主题">${(localStorage.getItem(TKEY)||"dark")==="dark"?ICON.sun:ICON.moon}</button>
+        <button class="theme-btn" data-act="theme" aria-label="切换主题">${(localStorage.getItem(TKEY)||"light")==="dark"?ICON.sun:ICON.moon}</button>
       </div>
 
       <div class="home-main">
@@ -165,16 +165,16 @@
 
       <div class="prog-card">
         <div class="prog-rows">
-          <div class="prow"><i style="background:var(--muted)"></i><span>已练</span><b>${practiced}<em>/ ${total}</em></b></div>
-          <div class="prow"><i style="background:var(--accent)"></i><span>对过 1 次</span><b>${once}<em>/ ${total}</em></b></div>
-          <div class="prow"><i style="background:var(--good)"></i><span>对过 2 次 · 已消掉</span><b class="${gone ? "hit" : ""}">${gone}<em>/ ${total}</em></b></div>
+          <div class="prow"><i style="background:var(--p-zero)"></i><span>已练</span><b>${practiced}<em>/ ${total}</em></b></div>
+          <div class="prow"><i style="background:var(--p-once)"></i><span>对过 1 次</span><b>${once}<em>/ ${total}</em></b></div>
+          <div class="prow"><i style="background:var(--p-gone)"></i><span>对过 2 次 · 已消掉</span><b class="${gone ? "hit" : ""}">${gone}<em>/ ${total}</em></b></div>
         </div>
         <div class="bar-track">
-          <div class="bar-seg" style="width:${gone/total*100}%;background:var(--good)"></div>
-          <div class="bar-seg" style="width:${once/total*100}%;background:var(--accent)"></div>
-          <div class="bar-seg" style="width:${zero/total*100}%;background:var(--muted)"></div>
+          <div class="bar-seg" style="width:${gone/total*100}%;background:var(--p-gone)"></div>
+          <div class="bar-seg" style="width:${once/total*100}%;background:var(--p-once)"></div>
+          <div class="bar-seg" style="width:${zero/total*100}%;background:var(--p-zero)"></div>
         </div>
-        <div class="prog-legend"><span>灰＝练过但还没对　蓝＝对过 1 次　绿＝对过 2 次已消掉　空白＝没见过</span></div>
+        <div class="prog-legend"><span>灰＝练过还没对　浅绿＝对过 1 次　绿＝对过 2 次已消掉　空白＝没见过</span></div>
       </div>
 
       </div>
